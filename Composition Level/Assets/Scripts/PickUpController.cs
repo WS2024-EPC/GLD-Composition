@@ -9,11 +9,20 @@ public class PickupSystem : MonoBehaviour
     public Transform cameraTransform;
     public Text pickupText;
     public Text putText;
+
     public GameObject pickupObject;
     public GameObject putObject;
     public GameObject positionToPutObject;
+    public GameObject placedObject;
+    public Transform gate;
+
+    public float gateTargetY = -4f;
+    public float gateSpeed = 1.5f;
 
     private bool isPickedUp = false;
+    private bool isPlaceable = false;
+    private bool isPlaced = false;
+    private bool moveGate = false;
 
     void Start()
     {
@@ -25,6 +34,12 @@ public class PickupSystem : MonoBehaviour
     {
         CheckObjectInViewAndRange();
         HandlePickup();
+        if (moveGate)
+        {
+            Vector3 currentPosition = gate.position;
+            Vector3 targetPosition = new Vector3(currentPosition.x, gateTargetY, currentPosition.z);
+            gate.position = Vector3.MoveTowards(currentPosition, targetPosition, gateSpeed * Time.deltaTime);
+        }
     }
 
     void CheckObjectInViewAndRange()
@@ -36,7 +51,7 @@ public class PickupSystem : MonoBehaviour
         {
             float distance = Vector3.Distance(cameraTransform.position, pickupObject.transform.position);
             bool isInRange = distance <= pickupRange;
-            if (isInRange && !isPickedUp)
+            if (isInRange)
             {
                 pickupText.gameObject.SetActive(true);
                 isPickedUp = true;
@@ -48,9 +63,10 @@ public class PickupSystem : MonoBehaviour
         {
             float distance = Vector3.Distance(cameraTransform.position, pickupObject.transform.position);
             bool isInRange = distance <= pickupRange;
-            if (isInRange && isPickedUp)
+            if (isInRange && !isPlaced)
             {
                 putText.gameObject.SetActive(true);
+                isPlaceable = true;
             }
         }
     }
@@ -61,6 +77,13 @@ public class PickupSystem : MonoBehaviour
         {
             PickupObject(pickupObject);
             pickupText.gameObject.SetActive(false);
+        }
+        if(isPlaceable && Input.GetKeyDown(KeyCode.F))
+        {
+            placedObject.SetActive(true);
+            putText.gameObject.SetActive(false);
+            moveGate = true;
+            isPlaced = true;
         }
     }
 
